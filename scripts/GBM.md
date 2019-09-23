@@ -74,6 +74,8 @@ Each file-name should contain: \
 (1) 0000, 0001, 0002... as image number (lane) indicator; \
 (2) a list as the channel name for the cell measurement; \
 (3) .tif_Results.xls as file extension. \
+note: if the cell measurement is well based, 
+then you need to manually filter out those empty wells in the `WellBeadCell.obc_cell` before sequencing linkage.
 
 ```
 cell_folder = project_folder + "image/cell/"
@@ -149,6 +151,26 @@ for i in range(lanes):
     f.close()
 
 ```
+Optional: The following code is an example of well-based cell measurement. (in mixed species experiment)\
+ Manually filtering out those empty wells in the `WellBeadCell.obc_cell` before sequencing linkage. 
+ 
+```
+plt.hist(np.log2(well_bead_cell.cell['c2']['c2_Mean']))
+plt.show()
+plt.hist(np.log2(well_bead_cell.cell['c3']['c3_Mean']))
+plt.show()
+th_c2 = 2**9.5  # mannually chosen threshold for calling cells in the c2 (calcein green human) channel
+th_c3 = 2**11  # mannually chosen threshold for calling cells in the c3 (calcein red mouse) channel
+
+obc_cell = well_bead_cell.obc_cell
+obc_cell['c2_mean'] = well_bead_cell.cell['c2'].loc[obc_cell['cell_num'], 'Mean'].values
+obc_cell['c3_mean'] = well_bead_cell.cell['c3'].loc[obc_cell['cell_num'], 'Mean'].values
+obc_cell = obc_cell[(obc_cell['c2_mean'] > th_c2) | (obc_cell['c3_mean'] > th_c3)]
+
+well_bead_cell.obc_cell = pd.DataFrame(obc_cell[['obc', 'cell_num']].values, columns=['obc', 'cell_num'], 
+                                       index=range(obc_cell.shape[0]))
+```
+
 
 ### linking image optical barcode to sequencing cell ids.
 
