@@ -16,9 +16,9 @@ class CellFeatures:
         """
         if cell_id is None:
             f = open(cell_id_fn, 'r')
-            cell_id = f.read().rstrip('\n').split('\t')
+            cell_id = f.read().split('\t')
             f.close()
-            for x in ['gid', 'gene']:
+            for x in ['gid', 'gene', '\n']:
                 cell_id.remove(x)
         self.cell_id = cell_id
         self.seqobc_cell = pd.DataFrame(index=self.cell_id)
