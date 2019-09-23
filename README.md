@@ -14,3 +14,6 @@ git clone git@github.com:simslab/scopeseqv2_2019.git
 cd scopeseqv2_2019
 pip install .
 ```
+
+### Example workflow
+see `scripts/GBM.md` for reference.
