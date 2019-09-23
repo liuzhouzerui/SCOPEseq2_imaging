@@ -8,7 +8,7 @@ from scopeseq.Bead_Intensity import BeadIntensity
 from scopeseq.Well_Bead_Cell import WellBeadCell
 from scopeseq.Cell_Features import CellFeatures
 ```
-###image analysis
+### image analysis
 
 #### parameters
 bead_folder - a bead folder that contains de-multiplexing fluorescent measurement. \
