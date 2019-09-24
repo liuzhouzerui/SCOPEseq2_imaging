@@ -40,7 +40,9 @@ channels = ["c1", "c2", "c3"]
  first_border - the x coordinate (pixel) of the first border of the patches. \
  border_gap - the pixels between the two borders of the patch. \
  round_number - the number of rounds used for de-multiplexing, default 8. \
- d_th - the distance threshold for register, default 40. 
+ d_th_bead - the distance threshold for registering bead, default 40. if using low resolution for 
+ de-multiplexing image, then it's 20. \
+ d_th_cell - the distance threshold for registering bead, default is d_th_bead.
 
 ```
 lanes = 1
@@ -48,7 +50,7 @@ patches = 10
 first_border = 600
 border_gap = 7400
 round_number = 8
-d_th = 40
+d_th_bead = 40
 ```
 obc_ref_fn - the obc barcode reference filename.
 
@@ -106,7 +108,8 @@ e.g. 0_19_23 means the 0th patch, 19th S-probe, 23th Q-probe \
 for i in range(lanes):
     print('doing lane ' + str(i) + '...')
     # create bead-intensity object for each single lane
-    bead_intensity = BeadIntensity(bead_folder, channels, n_lane=i, total_lanes=lanes, total_patches_per_lane=patches)
+    bead_intensity = BeadIntensity(bead_folder, channels, n_lane=i, total_lanes=lanes, total_patches_per_lane=patches
+                                   d_th=d_th_bead)
     bead_intensity.generate_bead_intensity()
     bead_intensity.assign_patch(first_border=first_border, border_gap=border_gap)
     bead_intensity.obc_calling(obc_ref_fn)
@@ -141,7 +144,7 @@ for i in range(lanes):
     f = open(image_folder + 'bead_intensity_' + str(i) + '.obj', 'rb')
     bead_intensity = pickle.load(f)
     f.close()
-    well_bead_cell.link_bead(bead_intensity)
+    well_bead_cell.link_bead(bead_intensity, d_th=d_th_cell)
     # load cell features
     well_bead_cell.link_cell(cell_folder, cell_image_channels)
     well_bead_cell.link_obc_cell()

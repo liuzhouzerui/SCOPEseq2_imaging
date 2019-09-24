@@ -60,16 +60,18 @@ class WellBeadCell:
             np.dot(np.array(self.bead.bead_position - landmark.loc[2, ['XM', 'YM']]), self.rotation_matrix) * \
             target_vector / np.dot(initial_vector, self.rotation_matrix)
 
-    def link_bead(self, bead):
+    def link_bead(self, bead, d_th=None):
         """
 
         :param bead: BeadIntensity object
         :return:
         """
         print("linking bead information to wells...")
+        if d_th is None:
+            d_th = self.bead.d_th
         self.bead = bead
         self.rotate_bead_position()
-        d_position, d_inrange = register(self.bead_rotated_position, self.well_position, self.bead.d_th)
+        d_position, d_inrange = register(self.bead_rotated_position, self.well_position, d_th)
         self.well_bead_link[d_position[d_inrange]] = np.arange(d_position.size)[d_inrange]
 
     def link_cell(self, cell_folder, channels):
