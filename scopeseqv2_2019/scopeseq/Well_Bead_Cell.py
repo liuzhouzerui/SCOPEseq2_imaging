@@ -54,7 +54,7 @@ class WellBeadCell:
         landmark_all = pd.read_csv(self.well_folder + landmark_fn)
         # rotate for each small parts, parts number = landmark.shape[0]/4
         parts_number = landmark_all.shape[0]/4
-        for i in range(parts_number):
+        for i in range(int(parts_number)):
             landmark = landmark_all.iloc[(i*4):((i+1)*4), :]
             target_vector = np.array(
                 [landmark.iloc[1, 9] - landmark.iloc[0, 9], landmark.iloc[1, 10] - landmark.iloc[0, 10]])
