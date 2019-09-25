@@ -30,6 +30,8 @@ class BeadIntensity:
         self.bg = None
         self.patch = np.array([])
         self.obc = []
+        self.obc_s = []
+        self.obc_q = []
         self.round = round_number
         self.d_th = d_th
 
@@ -128,19 +130,22 @@ class BeadIntensity:
         :param border_gap:
         :return:
         """
+        print('assigning patches...')
         borders = np.arange(first_border, first_border + (self.n_patch_per_lane + 1) * border_gap, border_gap)
         self.patch = self.bead_position['XM'].apply(lambda x: np.argmax((borders > x) * 1)-1)
         self.patch = self.patch + self.n_patch_per_lane * self.n_lane
 
-    def obc_calling(self, barcode_ref_fn):
+    def obc_calling(self, barcode_ref_fn, no_signal_th=None):
         """
 
         :param barcode_ref_fn: a file contains Barcode_S and Barcode_Q
+        :param no_signal_th:
         :return:
         """
+        print('optical barcode calling...')
         barcode_ref_table = pd.read_csv(barcode_ref_fn, dtype=str)
-        obc_s = self.probe.iloc[:, 0:self.round].apply(lambda x: assign_obc(x, barcode_ref_table['Barcode_S']), axis=1)\
-            .values
-        obc_q = self.probe.iloc[:, self.round:self.probe.shape[1]].apply(lambda x: assign_obc(x, barcode_ref_table[
-            'Barcode_Q']), axis=1).values
-        self.obc = self.patch.astype('str') + '_' + obc_s.astype('str') + '_' + obc_q.astype('str')
+        self.obc_s = self.probe.iloc[:, 0:self.round].apply(
+            lambda x: assign_obc(x, barcode_ref_table['Barcode_S'], no_signal_th=no_signal_th), axis=1).values
+        self.obc_q = self.probe.iloc[:, self.round:self.probe.shape[1]].apply(lambda x: assign_obc(x, barcode_ref_table[
+            'Barcode_Q'], no_signal_th=no_signal_th), axis=1).values
+        self.obc = self.patch.astype('str') + '_' + self.obc_s.astype('str') + '_' + self.obc_q.astype('str')
