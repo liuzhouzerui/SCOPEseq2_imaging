@@ -37,12 +37,13 @@ def find_rotation_matrix(x, y):
     return rotation_matrix
 
 
-def assign_obc(x, barcode_ref, no_signal_th=None):
+def assign_obc(x, barcode_ref, no_signal_th=None, mode='all'):
     """
     obc num is 0 based
     :param x: probe intensity vector
     :param barcode_ref: reference obc pool
     :param no_signal_th: threshold for no signal
+    :param mode: 'all' for iteration, 'max' for only first round
     :return: obc vector. or -1 for unmatched obc
     """
     if min(x) == -1:
@@ -54,18 +55,24 @@ def assign_obc(x, barcode_ref, no_signal_th=None):
     x_th = x_sorted[np.argmax(x_dif)]
     barcode = (x > x_th) * 1
     i = 1
-    while i < (len(x)-1):
+    if mode == 'all':
+        while i < (len(x)-1):
+            if ''.join(barcode.astype("str")) in barcode_ref.values:
+                return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0]
+            else:
+                x_dif[np.argmax(x_dif)] = 0
+                x_th = x_sorted[np.argmax(x_dif)]
+                barcode = (x > x_th) * 1
+                i = i + 1
         if ''.join(barcode.astype("str")) in barcode_ref.values:
             return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0]
         else:
-            x_dif[np.argmax(x_dif)] = 0
-            x_th = x_sorted[np.argmax(x_dif)]
-            barcode = (x > x_th) * 1
-            i = i + 1
-    if ''.join(barcode.astype("str")) in barcode_ref.values:
-        return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0]
-    else:
-        return -1
+            return -1
+    if mode == 'max':
+        if ''.join(barcode.astype("str")) in barcode_ref.values:
+            return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0]
+        else:
+            return -1
 
 
 def find_unique_match_position(target, ref):

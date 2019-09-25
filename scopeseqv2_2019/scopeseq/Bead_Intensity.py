@@ -135,17 +135,18 @@ class BeadIntensity:
         self.patch = self.bead_position['XM'].apply(lambda x: np.argmax((borders > x) * 1)-1)
         self.patch = self.patch + self.n_patch_per_lane * self.n_lane
 
-    def obc_calling(self, barcode_ref_fn, no_signal_th=None):
+    def obc_calling(self, barcode_ref_fn, no_signal_th=None, mode='all'):
         """
 
         :param barcode_ref_fn: a file contains Barcode_S and Barcode_Q
         :param no_signal_th:
+        :param mode:
         :return:
         """
         print('optical barcode calling...')
         barcode_ref_table = pd.read_csv(barcode_ref_fn, dtype=str)
         self.obc_s = self.probe.iloc[:, 0:self.round].apply(
-            lambda x: assign_obc(x, barcode_ref_table['Barcode_S'], no_signal_th=no_signal_th), axis=1).values
+            lambda x: assign_obc(x, barcode_ref_table['Barcode_S'], no_signal_th=no_signal_th, mode=mode), axis=1).values
         self.obc_q = self.probe.iloc[:, self.round:self.probe.shape[1]].apply(lambda x: assign_obc(x, barcode_ref_table[
-            'Barcode_Q'], no_signal_th=no_signal_th), axis=1).values
+            'Barcode_Q'], no_signal_th=no_signal_th, mode=mode), axis=1).values
         self.obc = self.patch.astype('str') + '_' + self.obc_s.astype('str') + '_' + self.obc_q.astype('str')

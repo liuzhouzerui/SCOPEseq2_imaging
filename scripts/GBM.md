@@ -84,6 +84,11 @@ cell_folder = project_folder + "image/cell/"
 cell_image_channels = ['c2', 'c3']
 ```
 
+mode - 'all' for iteration, 'max' for only max intensity change. 
+```
+mode = 'all'
+```
+
 #### objects
 
 The following code would generate a BeadIntensity object for each single lane, \
@@ -112,7 +117,7 @@ for i in range(lanes):
                                    d_th=d_th_bead)
     bead_intensity.generate_bead_intensity()
     bead_intensity.assign_patch(first_border=first_border, border_gap=border_gap)
-    bead_intensity.obc_calling(obc_ref_fn)
+    bead_intensity.obc_calling(obc_ref_fn, no_signal_th=None, mode=mode)
     # write bead intensity
     f = open(image_folder + 'bead_intensity_' + str(i) + '.obj', 'wb')
     pickle.dump(bead_intensity, f)
