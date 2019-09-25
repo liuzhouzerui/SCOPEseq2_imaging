@@ -15,5 +15,8 @@ cd scopeseqv2_2019
 pip install .
 ```
 
+### Example file arrangement
+see `GBM` folder for reference.
+
 ### Example workflow
-see `scripts/GBM.md` for reference.
+see `scripts/GBM.md` for reference. 
