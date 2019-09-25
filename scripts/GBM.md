@@ -96,6 +96,10 @@ cell_folder = project_folder + "image/cell/"
 cell_image_channels = ['c2', 'c3']
 ```
 
+d_th_cell - the distance threshold, used in linking bead and cell to wells.
+```
+d_th_cell = 40
+```
 
 
 #### objects - bead intensity
