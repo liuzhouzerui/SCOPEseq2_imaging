@@ -52,7 +52,7 @@ class WellBeadCell:
         self.bead_rotated_position = pd.DataFrame(-1, columns=['XM', 'YM'], index=range(self.bead.bead_position.shape[0]))
         landmark_fn = fnmatch.filter(os.listdir(self.well_folder), '*UL_BR_' + str(self.n_lane) + '.csv')[0]
         landmark_all = pd.read_csv(self.well_folder + landmark_fn)
-        # rotate for each small parts, parts number = landmark.shape[0]/4
+        # rotate for each small parts, parts number = landmark.shape[0]/4 = patch number
         parts_number = int(landmark_all.shape[0]/4)
         if parts_number == 1:
             landmark = landmark_all
@@ -65,9 +65,6 @@ class WellBeadCell:
                 np.dot(np.array(self.bead.bead_position - landmark.iloc[2, 9:11]), self.rotation_matrix) * \
                 target_vector / np.dot(initial_vector, self.rotation_matrix)
         else:
-            borders = np.arange(self.bead.borders[0], self.bead.borders[-1]+(self.bead.borders[-1]-self.bead.borders[0])
-                                / parts_number, (self.bead.borders[-1]-self.bead.borders[0])/parts_number)
-            bead_parts = self.bead.bead_position['XM'].apply(lambda x: np.argmax((borders > x) * 1) - 1)
             for i in range(parts_number):
                 landmark = landmark_all.iloc[(i*4):((i+1)*4), :]
                 target_vector = np.array(
@@ -75,8 +72,8 @@ class WellBeadCell:
                 initial_vector = np.array(
                     [landmark.iloc[3, 9] - landmark.iloc[2, 9], landmark.iloc[3, 10] - landmark.iloc[2, 10]])
                 self.rotation_matrix = find_rotation_matrix(target_vector, initial_vector)
-                self.bead_rotated_position[bead_parts == i] = np.array(landmark.iloc[0, 9:11]) + \
-                    np.dot(np.array(self.bead.bead_position[bead_parts == i] - landmark.iloc[2, 9:11]), self.rotation_matrix) * \
+                self.bead_rotated_position[self.bead.patch == (i+self.bead.n_patch_per_lane * self.bead.n_lane)] = \
+                    np.array(landmark.iloc[0, 9:11]) + np.dot(np.array(self.bead.bead_position[self.bead.patch == (i+self.bead.n_patch_per_lane * self.bead.n_lane)] - landmark.iloc[2, 9:11]), self.rotation_matrix) * \
                     target_vector / np.dot(initial_vector, self.rotation_matrix)
 
     def link_bead(self, bead, d_th=None):
