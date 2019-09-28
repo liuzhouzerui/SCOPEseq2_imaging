@@ -7,8 +7,7 @@ from scopeseq.method import register, assign_obc
 
 
 class BeadIntensity:
-    def __init__(self, bead_intensity_folder, channel_name, n_lane=0, total_lanes=1, total_patches_per_lane=10,
-                 round_number=8, d_th=40):
+    def __init__(self, bead_intensity_folder, channel_name, n_lane=0, total_lanes=1, total_patches_per_lane=10, round_number=8, d_th=40):
         """
 
         :param bead_intensity_folder:
@@ -28,6 +27,7 @@ class BeadIntensity:
         self.bead_position = None
         self.probe = None
         self.bg = None
+        self.borders = None
         self.patch = np.array([])
         self.obc = []
         self.obc_s = []
@@ -131,8 +131,8 @@ class BeadIntensity:
         :return:
         """
         print('assigning patches...')
-        borders = np.arange(first_border, first_border + (self.n_patch_per_lane + 1) * border_gap, border_gap)
-        self.patch = self.bead_position['XM'].apply(lambda x: np.argmax((borders > x) * 1)-1)
+        self.borders = np.arange(first_border, first_border + (self.n_patch_per_lane + 1) * border_gap, border_gap)
+        self.patch = self.bead_position['XM'].apply(lambda x: np.argmax((self.borders > x) * 1)-1)
         self.patch = self.patch + self.n_patch_per_lane * self.n_lane
 
     def obc_calling(self, barcode_ref_fn, no_signal_th=None, mode='all'):

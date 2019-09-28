@@ -54,16 +54,30 @@ class WellBeadCell:
         landmark_all = pd.read_csv(self.well_folder + landmark_fn)
         # rotate for each small parts, parts number = landmark.shape[0]/4
         parts_number = int(landmark_all.shape[0]/4)
-        for i in range(parts_number):
-            landmark = landmark_all.iloc[(i*4):((i+1)*4), :]
+        if parts_number == 1:
+            landmark = landmark_all
             target_vector = np.array(
                 [landmark.iloc[1, 9] - landmark.iloc[0, 9], landmark.iloc[1, 10] - landmark.iloc[0, 10]])
             initial_vector = np.array(
                 [landmark.iloc[3, 9] - landmark.iloc[2, 9], landmark.iloc[3, 10] - landmark.iloc[2, 10]])
             self.rotation_matrix = find_rotation_matrix(target_vector, initial_vector)
-            self.bead_rotated_position[self.bead.patch == i] = np.array(landmark.iloc[0, 9:11]) + \
-                np.dot(np.array(self.bead.bead_position[self.bead.patch == i] - landmark.iloc[2, 9:11]), self.rotation_matrix) * \
+            self.bead_rotated_position = np.array(landmark.iloc[0, 9:11]) + \
+                np.dot(np.array(self.bead.bead_position - landmark.iloc[2, 9:11]), self.rotation_matrix) * \
                 target_vector / np.dot(initial_vector, self.rotation_matrix)
+        else:
+            borders = np.arange(self.bead.borders[0], self.bead.borders[-1]+(self.bead.borders[-1]-self.bead.borders[0])
+                                / parts_number, (self.bead.borders[-1]-self.bead.borders[0])/parts_number)
+            bead_parts = self.bead.bead_position['XM'].apply(lambda x: np.argmax((borders > x) * 1) - 1)
+            for i in range(parts_number):
+                landmark = landmark_all.iloc[(i*4):((i+1)*4), :]
+                target_vector = np.array(
+                    [landmark.iloc[1, 9] - landmark.iloc[0, 9], landmark.iloc[1, 10] - landmark.iloc[0, 10]])
+                initial_vector = np.array(
+                    [landmark.iloc[3, 9] - landmark.iloc[2, 9], landmark.iloc[3, 10] - landmark.iloc[2, 10]])
+                self.rotation_matrix = find_rotation_matrix(target_vector, initial_vector)
+                self.bead_rotated_position[bead_parts == i] = np.array(landmark.iloc[0, 9:11]) + \
+                    np.dot(np.array(self.bead.bead_position[bead_parts == i] - landmark.iloc[2, 9:11]), self.rotation_matrix) * \
+                    target_vector / np.dot(initial_vector, self.rotation_matrix)
 
     def link_bead(self, bead, d_th=None):
         """
