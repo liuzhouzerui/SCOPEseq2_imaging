@@ -36,6 +36,19 @@ def find_rotation_matrix(x, y):
     rotation_matrix = np.array([[cos_xy, - sin_xy], [sin_xy, cos_xy]])
     return rotation_matrix
 
+def quantile_linear_transformation(x, round):
+    if round in [1, 2, 3, 4, 5, 8]:
+        q1 = 0.25
+        q2 = 0.75
+    if round in [6, 7]:
+        q1 = 0.33
+        q2 = 0.83
+    marker_1 = x.quantile(q1)
+    marker_2 = x.quantile(q2)
+    x_new = (x-marker_1)/(marker_2-marker_1)*14883+1500
+    x_new[x_new < 1500] = 1500
+    x_new[x_new > 16383] = 16383
+    return x_new.values, marker_1, marker_2
 
 def assign_obc(x, barcode_ref, no_signal_th=None, mode='all'):
     """

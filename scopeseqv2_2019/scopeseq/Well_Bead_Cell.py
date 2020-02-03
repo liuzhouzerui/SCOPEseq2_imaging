@@ -85,7 +85,7 @@ class WellBeadCell:
         """
         print("linking bead information to wells...")
         if d_th is None:
-            d_th = self.bead.d_th
+            d_th = bead.d_th
         self.bead = bead
         self.rotate_bead_position()
         d_position, d_inrange = register(self.bead_rotated_position, self.well_position, d_th)

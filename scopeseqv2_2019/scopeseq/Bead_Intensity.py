@@ -3,7 +3,7 @@ import fnmatch
 import pandas as pd
 import numpy as np
 
-from scopeseq.method import register, assign_obc
+from scopeseq.method import register, assign_obc, quantile_linear_transformation
 
 
 class BeadIntensity:
@@ -26,6 +26,7 @@ class BeadIntensity:
         self.bead_area = None
         self.bead_position = None
         self.probe = None
+        self.probe_normalized = None
         self.bg = None
         self.patch = np.array([])
         self.obc = []
@@ -122,6 +123,19 @@ class BeadIntensity:
                     else:
                         self.register_bead(iter_round, channel, bp)
 
+    def intensity_normalization(self, method='ql'):
+        """
+
+        :param method: 'ql', quantile linear transformation
+        :return:
+        """
+        if method == 'ql':
+            round = [1, 2, 3, 4, 5, 6, 7, 8, 1, 2, 3, 4, 5, 6, 7, 8]
+            self.probe_normalized = pd.DataFrame(0, columns=self.probe.columns, index=self.probe.index)
+            for i in range(len(round)):
+                self.probe_normalized.iloc[:, i], m1, m2 = quantile_linear_transformation(self.probe.iloc[:, i], round[i])
+                print(self.probe.columns[i], m1, m2)
+
     def assign_patch(self, first_border=600, border_gap=7400):
         """
 
@@ -144,8 +158,18 @@ class BeadIntensity:
         """
         print('optical barcode calling...')
         barcode_ref_table = pd.read_csv(barcode_ref_fn, dtype=str)
-        self.obc_s = self.probe.iloc[:, 0:self.round].apply(
-            lambda x: assign_obc(x, barcode_ref_table['Barcode_S'], no_signal_th=no_signal_th, mode=mode), axis=1).values
-        self.obc_q = self.probe.iloc[:, self.round:self.probe.shape[1]].apply(lambda x: assign_obc(x, barcode_ref_table[
-            'Barcode_Q'], no_signal_th=no_signal_th, mode=mode), axis=1).values
+        if self.probe_normalized is None:
+            self.obc_s = self.probe.iloc[:, 0:self.round].apply(
+                lambda x: assign_obc(x, barcode_ref_table['Barcode_S'], no_signal_th=no_signal_th, mode=mode),
+                axis=1).values
+            self.obc_q = self.probe.iloc[:, self.round:self.probe.shape[1]].apply(
+                lambda x: assign_obc(x, barcode_ref_table[
+                    'Barcode_Q'], no_signal_th=no_signal_th, mode=mode), axis=1).values
+        else:
+            self.obc_s = self.probe_normalized.iloc[:, 0:self.round].apply(
+                lambda x: assign_obc(x, barcode_ref_table['Barcode_S'], no_signal_th=no_signal_th, mode=mode),
+                axis=1).values
+            self.obc_q = self.probe_normalized.iloc[:, self.round:self.probe_normalized.shape[1]].apply(
+                lambda x: assign_obc(x, barcode_ref_table[
+                    'Barcode_Q'], no_signal_th=no_signal_th, mode=mode), axis=1).values
         self.obc = self.patch.astype('str') + '_' + self.obc_s.astype('str') + '_' + self.obc_q.astype('str')
