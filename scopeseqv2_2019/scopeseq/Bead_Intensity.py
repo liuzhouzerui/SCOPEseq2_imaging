@@ -3,7 +3,7 @@ import fnmatch
 import pandas as pd
 import numpy as np
 
-from scopeseq.method import register, assign_obc, quantile_linear_transformation
+from scopeseq.method import register, assign_obc, assign_obc_stage, quantile_linear_transformation
 
 
 class BeadIntensity:
@@ -150,26 +150,55 @@ class BeadIntensity:
 
     def obc_calling(self, barcode_ref_fn, no_signal_th=None, mode='all'):
         """
-
         :param barcode_ref_fn: a file contains Barcode_S and Barcode_Q
         :param no_signal_th:
-        :param mode:
+        :param mode: 'max' is one round core-by-core method, 'all' is full round core-by-core method
         :return:
         """
-        print('optical barcode calling...')
+        print('optical barcode calling using core-by-core method...')
         barcode_ref_table = pd.read_csv(barcode_ref_fn, dtype=str)
         if self.probe_normalized is None:
             self.obc_s = self.probe.iloc[:, 0:self.round].apply(
                 lambda x: assign_obc(x, barcode_ref_table['Barcode_S'], no_signal_th=no_signal_th, mode=mode),
-                axis=1).values
+                axis=1, result_type="expand")
             self.obc_q = self.probe.iloc[:, self.round:self.probe.shape[1]].apply(
                 lambda x: assign_obc(x, barcode_ref_table[
-                    'Barcode_Q'], no_signal_th=no_signal_th, mode=mode), axis=1).values
+                    'Barcode_Q'], no_signal_th=no_signal_th, mode=mode), axis=1, result_type="expand")
         else:
             self.obc_s = self.probe_normalized.iloc[:, 0:self.round].apply(
                 lambda x: assign_obc(x, barcode_ref_table['Barcode_S'], no_signal_th=no_signal_th, mode=mode),
-                axis=1).values
+                axis=1, result_type="expand")
             self.obc_q = self.probe_normalized.iloc[:, self.round:self.probe_normalized.shape[1]].apply(
                 lambda x: assign_obc(x, barcode_ref_table[
-                    'Barcode_Q'], no_signal_th=no_signal_th, mode=mode), axis=1).values
-        self.obc = self.patch.astype('str') + '_' + self.obc_s.astype('str') + '_' + self.obc_q.astype('str')
+                    'Barcode_Q'], no_signal_th=no_signal_th, mode=mode), axis=1, result_type="expand")
+        self.obc = self.patch.astype('str') + '_' + self.obc_s[0].astype('str') + '_' + self.obc_q[0].astype('str')
+        self.obc_round = self.obc_s[1].astype('str') + '_' + self.obc_q[1].astype('str')
+
+
+    def obc_calling_stage(self, barcode_ref_fn):
+        """
+        barcode calling using stage-by-stage method
+        :param barcode_ref_fn:
+        :return:
+        """
+        print('optical barcode calling using stage-by-stage method...')
+        barcode_ref_table = pd.read_csv(barcode_ref_fn, dtype=str)
+        obc = pd.DataFrame(None, index=self.probe.index, columns=self.probe.columns)
+        # determine cut-off of each stage and assign on-off
+        for i in self.probe.columns:
+            chist, cedge = np.histogram(np.log2(self.probe[self.probe[i] > 0][i]), bins=50)
+            md = np.median(cedge)
+            mn1 = cedge[np.argmax(chist[cedge[0:-1] < md])]
+            mn2 = cedge[np.argmax(chist[cedge[0:-1] > md]) + len(cedge[cedge <= md])]
+            # the shortest bin between two mean as thresh
+            thresh = cedge[np.argmin(chist[(cedge[0:-1] > mn1) & (cedge[0:-1] < mn2)]) + len(cedge[cedge <= mn1])]
+            obc[i][(np.log2(self.probe[i]) > 0) & (np.log2(self.probe[i]) <= thresh)] = 0
+            obc[i][np.log2(self.probe[i]) > thresh] = 1
+            obc[i][self.probe[i] == -1] = -1
+        self.obc_s_stage = obc.iloc[:, 0:self.round].apply(
+            lambda x: assign_obc_stage(x, barcode_ref_table['Barcode_S']), axis=1).values
+        self.obc_q_stage = obc.iloc[:, self.round:self.probe.shape[1]].apply(
+            lambda x: assign_obc_stage(x, barcode_ref_table['Barcode_Q']), axis=1).values
+        self.obc_stage = self.patch.astype('str') + '_' + self.obc_s_stage.astype(
+            'str') + '_' + self.obc_q_stage.astype('str')
+

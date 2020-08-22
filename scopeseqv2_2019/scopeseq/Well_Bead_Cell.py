@@ -123,6 +123,7 @@ class WellBeadCell:
         position = np.array([find_unique_match_position(x, self.well_bead_link) for x in range(self.bead.obc.size)])
         self.obc_cell = pd.DataFrame(-1, columns=['obc', 'cell_num'], index=range(sum(position > 0)))
         self.obc_cell['obc'] = self.bead.obc[np.arange(position.size)[position > 0]].values
+        self.obc_cell['obc_round'] = self.bead.obc_round[np.arange(position.size)[position > 0]].values
         self.obc_cell['cell_num'] = self.well_cell_link[position[position > 0]]
         self.obc_cell = self.obc_cell.iloc[np.where(self.obc_cell['cell_num'] > 0)]
         self.obc_cell.index = np.arange(self.obc_cell.shape[0])

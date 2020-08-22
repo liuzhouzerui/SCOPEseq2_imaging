@@ -60,9 +60,9 @@ def assign_obc(x, barcode_ref, no_signal_th=None, mode='all'):
     :return: obc vector. or -1 for unmatched obc
     """
     if min(x) == -1:
-        return -1
+        return -1, -1
     if (no_signal_th is not None) and (max(x) < no_signal_th):
-        return -1
+        return -1, -1
     x_sorted = np.sort(x)
     x_dif = np.diff(x_sorted)/x_sorted[0:(len(x)-1)]
     x_th = x_sorted[np.argmax(x_dif)]
@@ -71,22 +71,29 @@ def assign_obc(x, barcode_ref, no_signal_th=None, mode='all'):
     if mode == 'all':
         while i < (len(x)-1):
             if ''.join(barcode.astype("str")) in barcode_ref.values:
-                return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0]
+                return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0], i
             else:
                 x_dif[np.argmax(x_dif)] = 0
                 x_th = x_sorted[np.argmax(x_dif)]
                 barcode = (x > x_th) * 1
                 i = i + 1
         if ''.join(barcode.astype("str")) in barcode_ref.values:
-            return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0]
+            return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0], i
         else:
-            return -1
+            return -1, i
     if mode == 'max':
         if ''.join(barcode.astype("str")) in barcode_ref.values:
-            return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0]
+            return np.where(barcode_ref.values == ''.join(barcode.astype("str")))[0][0], i
         else:
-            return -1
+            return -1, i
 
+def assign_obc_stage(x, barcode_ref):
+    if min(x) == -1:
+        return -1
+    if ''.join(x.astype("str")) in barcode_ref.values:
+        return np.where(barcode_ref.values == ''.join(x.astype("str")))[0][0]
+    else:
+        return -1
 
 def find_unique_match_position(target, ref):
     match = np.where(ref == target)[0]

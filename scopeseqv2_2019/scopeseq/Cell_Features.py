@@ -37,6 +37,7 @@ class CellFeatures:
         cell_num = well_bead_cell.obc_cell.iloc[obc_position[obc_position > 0], :]
         self.seqobc_cell.loc[cell_num['obc'], 'lane'] = well_bead_cell.bead.n_lane
         self.seqobc_cell.loc[cell_num['obc'], 'cell_num'] = cell_num['cell_num'].values
+        self.seqobc_cell.loc[cell_num['obc'], 'obc_round'] = cell_num['obc_round'].values
         for key in well_bead_cell.cell.keys():
             for column in well_bead_cell.cell[key].columns.values:
                 self.seqobc_cell.loc[cell_num['obc'], key + '_' + column] = \
