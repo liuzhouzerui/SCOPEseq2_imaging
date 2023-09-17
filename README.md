@@ -16,8 +16,12 @@ cd scopeseqv2_2019
 pip install .
 ```
 
-### Example file arrangement
-see `GBM` folder for reference.
+# Usage
+The following code is used for analyzing the Glioblastoma data in the [SCOPE-seq2 paper](https://doi.org/10.1038/s41598-020-76599-w).
 
 ### Example workflow
 see `scripts/GBM.md` for reference. 
+
+### Example file arrangement
+see `GBM` folder for reference.
+
