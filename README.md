@@ -1,5 +1,5 @@
 # About
-SCOPE-seq2 is an integrated single cell imaging and RNA sequencing method. This pipeline is created for analyzing the fluoresence imaging data from SCOPE-seq2 and link it to scRNA-seq data. 
+SCOPE-seq2 is an integrated single cell imaging and RNA sequencing method. This scopeseq Python package is created for analyzing the fluoresence imaging data from SCOPE-seq2 and link it to scRNA-seq data. 
 
 # Installation
 ### Environment & Dependencies
