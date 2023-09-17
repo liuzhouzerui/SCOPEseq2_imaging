@@ -11,7 +11,7 @@ This pipline requires Python >= 3.6 and the packages:
 ### Installing the code 
 Once you have set up the environment, clone this repository and install.
 ```
-git clone git@github.com:simslab/scopeseqv2_2019.git
+git clone git@github.com:liuzhouzerui/SCOPEseq2_imaging.git
 cd scopeseqv2_2019
 pip install .
 ```
